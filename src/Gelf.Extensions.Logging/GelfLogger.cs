@@ -102,6 +102,8 @@ namespace Gelf.Extensions.Logging
                     return BeginValueTupleScope(d);
                 case ValueTuple<string, decimal> dc:
                     return BeginValueTupleScope(dc);
+                case ValueTuple<string, Func<int>> fi:
+                    return BeginValueTupleScope(fi);
                 case IEnumerable<KeyValuePair<string, object>> additionalFields:
                     return GelfLogScope.Push(additionalFields);
                 default:

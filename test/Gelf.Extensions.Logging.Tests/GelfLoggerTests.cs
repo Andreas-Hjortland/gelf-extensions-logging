@@ -170,6 +170,23 @@ namespace Gelf.Extensions.Logging.Tests
         }
 
         [Fact]
+        public async Task Supports_function_scope()
+        {
+            var sut = LoggerFixture.CreateLogger<GelfLoggerTests>();
+            var counter = 0;
+            Func<int> increment = () => ++counter;
+            using (sut.BeginScope(("counter", increment)))
+            {
+                sut.LogDebug("First");
+                sut.LogDebug("Second");
+            }
+            var message = await GraylogFixture.WaitForMessageAsync();
+            Assert.Equal(1, message.counter);
+            message = await GraylogFixture.WaitForMessageAsync();
+            Assert.Equal(2, message.counter);
+        }
+
+        [Fact]
         public async Task Ignores_null_values_in_additional_fields()
         {
             var options = LoggerFixture.LoggerOptions;

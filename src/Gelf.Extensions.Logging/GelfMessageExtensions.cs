@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Reflection;
 
 namespace Gelf.Extensions.Logging
 {
@@ -26,13 +28,23 @@ namespace Gelf.Extensions.Logging
 
             foreach (var field in message.AdditionalFields)
             {
-                if(IsNumeric(field.Value))
+                object value = field.Value;
+                var type = value.GetType();
+                if(type.GetGenericTypeDefinition() == typeof(Func<>))
                 {
-                    messageJson[$"_{field.Key}"] = JToken.FromObject(field.Value);
+                    var args = type.GenericTypeArguments;
+                    if(args.Length == 1)
+                    {
+                        value = type.GetRuntimeMethod("Invoke", new Type[0]).Invoke(value, new object[0]);
+                    }
+                }
+                if(IsNumeric(value))
+                {
+                    messageJson[$"_{field.Key}"] = JToken.FromObject(value);
                 }
                 else
                 {
-                    messageJson[$"_{field.Key}"] = field.Value?.ToString();
+                    messageJson[$"_{field.Key}"] = value?.ToString();
                 }
             }
 
